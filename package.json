@@ -1,0 +1,31 @@
+{
+  "name": "proyectado-backend",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run ./src/server.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/bun": "latest",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.13.11",
+    "@types/swagger-ui-express": "^4.1.8",
+    "@typescript-eslint/eslint-plugin": "^8.27.0",
+    "@typescript-eslint/parser": "^8.27.0",
+    "eslint": "^9.22.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-base-typescript": "^1.1.0",
+    "globals": "^16.0.0",
+    "swagger-autogen": "^2.23.7",
+    "typescript-eslint": "^8.27.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "express": "4.21.2",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
