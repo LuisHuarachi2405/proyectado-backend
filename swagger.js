@@ -2,16 +2,18 @@ const swaggerAutogen = require('swagger-autogen')();
 
 const doc = {
   info: {
-      title: 'API de Mascotas',
-      description: 'Documentación de la API para la gestión de mascotas',
+    title: 'REST API',
+    description: ''
   },
   host: 'localhost:3000',
-  schemes: ['http'],
+  schemes: ['http']
 };
 
 const outputFile = './swagger_output.json';
-const endpointsFiles = ['./src/server.ts']; // Cambia este archivo según el punto de entrada de tu API
+
+// 🔴 Asegúrate de que aquí esté tu archivo de rutas donde están los comentarios #swagger
+const endpointsFiles = ['./src/modules/goals/goals.routes.ts'];
 
 swaggerAutogen(outputFile, endpointsFiles).then(() => {
-    require('./src/server'); // Inicia el servidor automáticamente
+  require('./src/server'); // o donde estés levantando tu app
 });

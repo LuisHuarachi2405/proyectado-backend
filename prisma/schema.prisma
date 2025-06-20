@@ -1,70 +1,213 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// schema.prisma
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" // Puedes cambiar a mysql, sqlite, etc.
   url      = env("DATABASE_URL")
 }
 
-model Goal {
-  id        String    @id @default(uuid())
-  name      String
-  amount    Decimal
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  incomes   Income[]
-  expenses  Expense[]
-  savings   Saving[]
-  projections Projection[]
+// Modelo de Usuario
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  categories    Category[]
+  incomes       Income[]
+  expenses      Expense[]
+  goals         Goal[]
+  budgets       Budget[]
+  transactions  Transaction[]
+
+  @@map("users")
 }
 
+// Categorías para gastos e ingresos
+model Category {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  color       String?     // Para UI
+  icon        String?     // Para UI
+  type        CategoryType // INCOME o EXPENSE
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relaciones
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses    Expense[]
+  incomes     Income[]
+
+  @@map("categories")
+}
+
+// Ingresos
 model Income {
-  id        String   @id @default(uuid())
-  goalId    String
-  type      IncomeType
-  amount    Decimal
-  createdAt DateTime @default(now())
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  amount      Float
+  frequency   Frequency     // MONTHLY, DAILY, WEEKLY, YEARLY, ONE_TIME
+  isActive    Boolean       @default(true)
+  startDate   DateTime      @default(now())
+  endDate     DateTime?     // Para ingresos temporales
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  goal      Goal     @relation(fields: [goalId], references: [id])
+  // Relaciones
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category?     @relation(fields: [categoryId], references: [id])
+  transactions Transaction[]
+
+  @@map("incomes")
 }
 
+// Gastos
 model Expense {
-  id        String   @id @default(uuid())
-  goalId    String
-  category  String
-  amount    Decimal
-  createdAt DateTime @default(now())
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  amount      Float
+  frequency   Frequency     // MONTHLY, DAILY, WEEKLY, YEARLY, ONE_TIME
+  isActive    Boolean       @default(true)
+  startDate   DateTime      @default(now())
+  endDate     DateTime?     // Para gastos temporales
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  goal      Goal     @relation(fields: [goalId], references: [id])
+  // Relaciones
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category?     @relation(fields: [categoryId], references: [id])
+  transactions Transaction[]
+
+  @@map("expenses")
 }
 
-model Saving {
-  id        String   @id @default(uuid())
-  goalId    String
-  amount    Decimal
-  createdAt DateTime @default(now())
+// Transacciones reales (registro de ingresos/gastos ejecutados)
+model Transaction {
+  id          String          @id @default(cuid())
+  amount      Float
+  description String?
+  date        DateTime        @default(now())
+  type        TransactionType // INCOME o EXPENSE
+  status      TransactionStatus @default(COMPLETED) // PENDING, COMPLETED, CANCELLED
+  
+  // Relaciones
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  incomeId    String?
+  income      Income?         @relation(fields: [incomeId], references: [id])
+  expenseId   String?
+  expense     Expense?        @relation(fields: [expenseId], references: [id])
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
-  goal      Goal     @relation(fields: [goalId], references: [id])
+  @@map("transactions")
 }
 
-model Projection {
-  id                 String   @id @default(uuid())
-  goalId             String
-  monthsRequired     Int
-  monthlySavingGoal  Decimal
-  createdAt          DateTime @default(now())
+// Objetivos/Metas financieras
+model Goal {
+  id           String      @id @default(cuid())
+  name         String
+  description  String?
+  targetAmount Float
+  currentAmount Float      @default(0)
+  priority     Priority    @default(MEDIUM) // HIGH, MEDIUM, LOW
+  targetDate   DateTime?
+  isCompleted  Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
-  goal               Goal     @relation(fields: [goalId], references: [id])
+  // Relaciones
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributions GoalContribution[]
+
+  @@map("goals")
 }
 
-enum IncomeType {
-  FIJO
-  EXTRA
+// Contribuciones a objetivos
+model GoalContribution {
+  id          String   @id @default(cuid())
+  amount      Float
+  description String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relaciones
+  goalId      String
+  goal        Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@map("goal_contributions")
+}
+
+// Presupuestos mensuales/períodos
+model Budget {
+  id          String       @id @default(cuid())
+  name        String
+  month       Int          // 1-12
+  year        Int
+  totalIncome Float        @default(0)
+  totalExpense Float       @default(0)
+  status      BudgetStatus @default(ACTIVE) // ACTIVE, CLOSED, DRAFT
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relaciones
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month, year])
+  @@map("budgets")
+}
+
+// Enums
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  ONE_TIME
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum BudgetStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
 }
