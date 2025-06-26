@@ -5,11 +5,18 @@ export class GoalsController {
   private goalsService = new GoalsService()
 
   create = async(req: Request, res: Response) => {
-    const goals = await this.goalsService.createGoal(req.body)
-    res.status(201).json({
-      'success': true,
-      'data': goals
-    })
+    try {
+      const goals = await this.goalsService.createGoal(req.body)
+      res.status(201).json({
+        'success': true,
+        'data': goals
+      })
+    } catch(err) {
+      res.status(201).json({
+        'success': true,
+        'message': err
+      })
+    }
   }
 
   findById = async (req: Request, res: Response) => {
