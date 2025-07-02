@@ -3,6 +3,8 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerFile from '../swagger_output.json';
 import userRoutes from './modules/user/user.routes';
 import goalsRoutes from './modules/goals/goals.routes';
+import categoryRoutes from './modules/category/category.routes';
+import incomeRoutes from './modules/category/category.routes';
 
 const app = express()
 
@@ -12,6 +14,8 @@ const port = 3000
 
 app.use('/api/users', userRoutes);
 app.use('/api/goals', goalsRoutes);
+app.use('/api/category', categoryRoutes);
+app.use('/api/income', incomeRoutes);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
