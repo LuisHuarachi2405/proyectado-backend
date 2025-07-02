@@ -5,6 +5,7 @@ import userRoutes from './modules/user/user.routes';
 import goalsRoutes from './modules/goals/goals.routes';
 import categoryRoutes from './modules/category/category.routes';
 import incomeRoutes from './modules/category/category.routes';
+import { swaggerSpec } from './config/swagger';
 
 const app = express()
 
@@ -17,7 +18,7 @@ app.use('/api/goals', goalsRoutes);
 app.use('/api/category', categoryRoutes);
 app.use('/api/income', incomeRoutes);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`)
